@@ -1,4 +1,6 @@
-exports.infoRender = (req,resp) => {
+const { fork } = require('child_process');
+
+exports.infoRender = (req, resp) => {
     const data = {};
     data.args = process.argv;
     data.platform = process.platform;
@@ -9,4 +11,16 @@ exports.infoRender = (req,resp) => {
     data.folder = process.cwd();
 
     resp.render('info', {data: data});
+};
+
+exports.ramdoms = (req, resp) => {
+    const cant = req.query.cant ?? 100000000;
+
+    console.log(cant)
+
+    const forked = fork('./src/ramdoms.js');
+    forked.send(cant);
+    forked.on('message', resultado => {
+        resp.send(`Resultado ${resultado}`);
+    });
 };

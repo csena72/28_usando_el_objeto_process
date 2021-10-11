@@ -9,6 +9,7 @@ module.exports = (router) => {
     router
 
     .get('/info', infoController.infoRender)
+    .get('/ramdoms', infoController.ramdoms)
     .get('/', loginController.loginRender)
     .get('/register', registerController.registerRender)
 
