@@ -31,17 +31,17 @@ passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
   callbackURL: '/auth/facebook/callback',
-  profileFields: ['id', 'displayName', 'photos', 'emails']  
+  profileFields: ['id', 'displayName', 'photos', 'emails']
 },
   function (accessToken, refreshToken, profile, done) {
 
-    User.findOne({  
+    User.findOne({
       'facebookId': profile.id
     }, (err, user) => {
       if (err) {
         return done(err);
       }
-      
+
       if (!user) {
         user = new User({
           facebookId: profile.id,
@@ -54,7 +54,7 @@ passport.use(new FacebookStrategy({
           if (err) console.log(err);
           return done(err, user);
         });
-      } else {        
+      } else {
         return done(err, user);
       }
     });
@@ -63,7 +63,7 @@ passport.use(new FacebookStrategy({
 
 app.get('/auth/facebook', passport.authenticate('facebook'));
 
-app.get('/auth/facebook/callback', 
+app.get('/auth/facebook/callback',
   passport.authenticate('facebook',{
     successRedirect: '/home',
     failureRedirect: '/faillogin'
@@ -72,9 +72,9 @@ app.get('/auth/facebook/callback',
 passport.use('login', new LocalStrategy({
     passReqToCallback : true
   },
-  function(req, username, password, done) { 
+  function(req, username, password, done) {
     // check in mongo if a user with username exists or not
-    User.findOne({ 'username' :  username }, 
+    User.findOne({ 'username' :  username },
       function(err, user) {
         // In case of any error, return using the done method
         if (err)
@@ -82,16 +82,16 @@ passport.use('login', new LocalStrategy({
         // Username does not exist, log error & redirect back
         if (!user){
           console.log('User Not Found with username '+username);
-          console.log('message', 'User Not found.');                 
+          console.log('message', 'User Not found.');
           return done(null, false)
         }
-        // User exists but wrong password, log the error 
+        // User exists but wrong password, log the error
         if (!isValidPassword(user, password)){
           console.log('Invalid Password');
           console.log('message', 'Invalid Password');
           return done(null, false) 
         }
-        // User and password both match, return user from 
+        // User and password both match, return user from
         // done method which will be treated like success
         return done(null, user);
       }
@@ -131,16 +131,16 @@ passport.use('register', new LocalStrategy({
           // save the user
           newUser.save(function(err) {
             if (err){
-              console.log('Error in Saving user: '+err);  
-              throw err;  
+              console.log('Error in Saving user: '+err);
+              throw err;
             }
-            console.log('User Registration succesful');    
+            console.log('User Registration succesful');
             return done(null, newUser);
           });
         }
       });
     }
-    // Delay the execution of findOrCreateUser and execute 
+    // Delay the execution of findOrCreateUser and execute
     // the method in the next tick of the event loop
     process.nextTick(findOrCreateUser);
   })
@@ -149,7 +149,7 @@ passport.use('register', new LocalStrategy({
 var createHash = function(password){
   return bCrypt.hashSync(password, bCrypt.genSaltSync(10), null);
 }
-   
+
 // Configure Passport authenticated session persistence.
 //
 // In order to restore authentication state across HTTP requests, Passport needs
@@ -224,7 +224,7 @@ app.get('/home', async (req,res) => {
 })
 
 app.post('/login', passport.authenticate('login', { failureRedirect: '/faillogin' }), (req,res) => {
-  res.redirect('/home')        
+  res.redirect('/home')
 });
 
 app.get('/faillogin', (req,res) => {
@@ -232,7 +232,7 @@ app.get('/faillogin', (req,res) => {
 })
 
 app.post('/register', passport.authenticate('register', { failureRedirect: '/failregister' }), (req,res) => {
-  res.redirect('/') 
+  res.redirect('/')
 });
 
 app.get('/failregister', (req,res) => {
@@ -254,23 +254,23 @@ io.on('connection', async (socket) => {
   productoService = new ProductoService();
   mensajeService = new MensajeService();
   let productosWs = await productoService.getAllProductos();
-  let mensajes = await mensajeService.getAllMensajes();  
+  let mensajes = await mensajeService.getAllMensajes();
 
   socket.emit('mensajes', { mensajes: await mensajeService.getAllMensajes() })
 
   socket.on('nuevo-mensaje', async (nuevoMensaje) => {
-    const { author, message } = nuevoMensaje; 
+    const { author, message } = nuevoMensaje;
     const elNuevoMensaje = {
       author,
       message,
     }
-    
+
     await mensajeService.createMensaje(elNuevoMensaje);
 
     io.sockets.emit('recibir nuevoMensaje', [elNuevoMensaje])
   })
 
-  io.sockets.emit('productos', await productoService.getAllProductos() ); 
+  io.sockets.emit('productos', await productoService.getAllProductos() );
 
   socket.on('producto-nuevo', async data => {
     await productoService.createProducto(data);
