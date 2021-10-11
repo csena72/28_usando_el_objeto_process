@@ -3,7 +3,7 @@ var exphbs = require('express-handlebars');
 
 const app = express();
 const router = express.Router();
-const { PORT, MONGO_URI, TIEMPO_EXPIRACION } = require('./config/globals');
+const { MONGO_URI, TIEMPO_EXPIRACION } = require('./config/globals');
 const { getConnection } = require('./dao/db/connection');
 const routes = require("./routes/routes");
 
@@ -20,6 +20,14 @@ const MensajeService = require("./services/mensajes");
 const { Mongoose } = require("mongoose");
 const MongoStore = require('connect-mongo');
 
+/* -------------- OBJECT PROCESS ----------- */
+
+const PORT = process.argv[2] ?? process.env.PORT;
+const FACEBOOK_APP_ID = process.argv[3] ?? process.env.FACEBOOK_APP_ID;
+const FACEBOOK_APP_SECRET =  process.argv[4] ?? process.env.FACEBOOK_APP_SECRET;
+
+console.log('Proceso N°: ', process.pid);
+
 /* -------------- PASSPORT ----------------- */
 const passport = require('passport');
 const bCrypt = require('bcrypt');
@@ -28,8 +36,8 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const User = require('./dao/models/usuarios');
 
 passport.use(new FacebookStrategy({
-  clientID: process.env.FACEBOOK_APP_ID,
-  clientSecret: process.env.FACEBOOK_APP_SECRET,
+  clientID: FACEBOOK_APP_ID,
+  clientSecret: FACEBOOK_APP_SECRET,
   callbackURL: '/auth/facebook/callback',
   profileFields: ['id', 'displayName', 'photos', 'emails']
 },
@@ -160,7 +168,7 @@ var createHash = function(password){
 passport.serializeUser(function(user, done) {
   done(null, user._id);
 });
- 
+
 passport.deserializeUser(function(id, done) {
   User.findById(id, function(err, user) {
     done(err, user);
